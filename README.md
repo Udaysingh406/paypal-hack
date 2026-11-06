@@ -8,6 +8,7 @@ docker compose up -d db
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r backend\requirements-dev.txt
+$env:PYTHONPATH="backend"
 alembic -c backend\alembic.ini upgrade head
 uvicorn app.main:app --app-dir backend --reload
 ```
@@ -36,6 +37,11 @@ transfers, payments, agent runs, audit logs, webhook events, and idempotency
 keys through SQLAlchemy. Run `alembic -c backend\alembic.ini upgrade head` for
 PostgreSQL deployments; SQLite table creation is enabled only for local
 development.
+
+`backend/requirements.txt` contains runtime dependencies. The authentication
+implementation uses Python's standard-library PBKDF2 and HMAC primitives, so
+no third-party password hashing package is required; `requirements-dev.txt`
+adds only test and lint tooling.
 
 All monetary fields are integer minor units. PayPal Sandbox is a verified
 merchant checkout boundary, not escrow or arbitrary peer-to-peer payouts.
