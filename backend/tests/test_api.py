@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import OperationalError
 
+from app.db import get_db
 from app.main import app
 
 
@@ -20,3 +22,30 @@ def test_group_access_is_scoped_to_members() -> None:
         allowed = client.get(f"/api/v1/groups/{group['id']}", headers={"Authorization": f"Bearer {token_a}"})
         assert allowed.status_code == 200
         assert allowed.json()["members"][0]["id"] == user_a
+
+
+def test_health_check_reports_database_status() -> None:
+    with TestClient(app) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "service": "settlemate-api", "database": "ok"}
+
+
+def test_health_check_returns_service_unavailable_when_database_fails() -> None:
+    def failing_db():
+        class FailingSession:
+            def execute(self, statement):
+                raise OperationalError("SELECT 1", {}, RuntimeError("database down"))
+
+        yield FailingSession()
+
+    app.dependency_overrides[get_db] = failing_db
+    try:
+        with TestClient(app) as client:
+            response = client.get("/health")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database unavailable"}

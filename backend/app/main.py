@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.auth import create_token, get_current_user, hash_password, verify_password
@@ -46,10 +47,23 @@ def live() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _check_database(db: Session) -> None:
+    try:
+        db.execute(text("SELECT 1"))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+
+
+@app.get("/health")
+def health(db: Session = Depends(get_db)) -> dict[str, str]:
+    _check_database(db)
+    return {"status": "ok", "service": "settlemate-api", "database": "ok"}
+
+
 @app.get("/health/ready")
 def ready(db: Session = Depends(get_db)) -> dict[str, str]:
-    db.execute(select(1))
-    return {"status": "ok"}
+    _check_database(db)
+    return {"status": "ok", "service": "settlemate-api", "database": "ok"}
 
 
 @app.get("/api/v1/health")
