@@ -1,6 +1,6 @@
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -49,7 +49,7 @@ def live() -> dict[str, str]:
 
 def _check_database(db: Session) -> None:
     try:
-        db.execute(text("SELECT 1"))
+        db.execute(select(1))
     except SQLAlchemyError as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
 

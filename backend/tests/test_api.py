@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
 
@@ -13,9 +15,10 @@ def register(client: TestClient, email: str) -> tuple[str, str]:
 
 
 def test_group_access_is_scoped_to_members() -> None:
+    test_id = uuid4().hex
     with TestClient(app) as client:
-        token_a, user_a = register(client, "a@example.com")
-        token_b, _ = register(client, "b@example.com")
+        token_a, user_a = register(client, f"a-{test_id}@example.com")
+        token_b, _ = register(client, f"b-{test_id}@example.com")
         group = client.post("/api/v1/groups", headers={"Authorization": f"Bearer {token_a}"}, json={"name": "Private group"}).json()
         denied = client.get(f"/api/v1/groups/{group['id']}", headers={"Authorization": f"Bearer {token_b}"})
         assert denied.status_code == 404
