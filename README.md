@@ -13,6 +13,10 @@ alembic -c backend\alembic.ini upgrade head
 uvicorn app.main:app --app-dir backend --reload
 ```
 
+Docker Compose exposes PostgreSQL on host port `5433` by default. Keep
+`POSTGRES_PORT=5433` and the matching `DATABASE_URL` from `.env.example`
+unless you intentionally choose another available host port.
+
 In another terminal:
 
 ```powershell

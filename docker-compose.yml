@@ -1,3 +1,4 @@
+
 services:
   db:
     image: postgres:16-alpine
@@ -6,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-settlemate}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-settlemate}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - settlemate-db:/var/lib/postgresql/data
     healthcheck:
@@ -14,5 +15,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
 volumes:
   settlemate-db:
