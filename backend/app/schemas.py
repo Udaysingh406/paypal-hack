@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.currencies import normalize_currency
+
 
 class UserCreate(BaseModel):
     email: str
@@ -18,7 +20,7 @@ class GroupCreate(BaseModel):
 
 class MemberCreate(BaseModel):
     user_id: str
-    role: str = "member"
+    role: str = Field(default="member", pattern="^member$")
 
 
 class ExpenseCreate(BaseModel):
@@ -31,7 +33,7 @@ class ExpenseCreate(BaseModel):
     @field_validator("currency")
     @classmethod
     def normalize_currency(cls, value: str) -> str:
-        return value.upper()
+        return normalize_currency(value)
 
 
 class ChatRequest(BaseModel):

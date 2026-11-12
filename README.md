@@ -54,3 +54,11 @@ Authentication uses signed bearer tokens for this MVP. Every group-scoped
 endpoint checks membership before reading or mutating financial records.
 Payment creation requires a debtor-owned `Idempotency-Key`; payment completion
 is accepted only from a verified PayPal server response or verified webhook.
+
+Financial lifecycle rules: expenses are created as `active` and can be
+soft-deleted while no approved settlement exists for their group. Active
+expenses with multiple currencies cause balance/settlement requests to return
+`409`; amounts are never combined across currencies. A settlement must be
+approved before a payment order is created, and approved settlements cannot be
+recalculated. Recalculation reconciles pending transfers idempotently and does
+not delete completed or payment-backed records.

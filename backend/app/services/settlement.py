@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from app.core.currencies import normalize_currency
+
 
 @dataclass(frozen=True)
 class Transfer:
@@ -29,8 +31,9 @@ def calculate_balances(
 
 
 def optimize_settlement(
-    balances: dict[str, int], currency: str = "INR"
+    balances: dict[str, int], currency: str
 ) -> list[Transfer]:
+    currency = normalize_currency(currency)
     if any(value < 0 and not isinstance(value, int) for value in balances.values()):
         raise ValueError("balances must be integers")
     debtors = [[user, -amount] for user, amount in balances.items() if amount < 0]
